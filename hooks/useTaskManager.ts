@@ -24,7 +24,7 @@ export const useTaskManager = () => {
             });
 
             // Fix: Pass table name 'tasks' to subscribe function.
-            const unsubscribe = subscribe('tasks', message => {
+            const unsubscribe = subscribe('tasks', (message: any) => {
                 switch (message.type) {
                     case 'TASK_CREATED':
                         setTasks(prev => [message.payload, ...prev]);
@@ -36,7 +36,7 @@ export const useTaskManager = () => {
                         setTasks(prev => prev.filter(t => t.id !== message.payload.id));
                         break;
                     case 'TASKS_BULK_UPDATED': {
-                        const updatedMap = new Map(message.payload.map(t => [t.id, t]));
+                        const updatedMap = new Map(message.payload.map((t: Task) => [t.id, t]));
                         setTasks(prev => prev.map(t => updatedMap.get(t.id) || t));
                         break;
                     }
@@ -64,7 +64,7 @@ export const useTaskManager = () => {
         };
     }, []);
 
-    const addTask = useCallback(async (taskData: Omit<Task, 'id' | 'completed' | 'createdAt' | 'completedAt' | 'timeSpent' | 'isTracking' | 'promotedToDashboard'>) => {
+    const addTask = useCallback(async (taskData: Omit<Task, 'id' | 'completed' | 'created_at' | 'completed_at' | 'time_spent' | 'is_tracking' | 'promoted_to_dashboard' | 'user_id'>) => {
         if (!user) return;
         const taskPayload = {
             ...taskData,
@@ -84,7 +84,7 @@ export const useTaskManager = () => {
         setTasks(prevTasks => [newTask, ...prevTasks]);
     }, [user]);
     
-    const addBulkTasks = useCallback(async (tasksData: Omit<Task, 'id' | 'completed' | 'createdAt' | 'completedAt' | 'tags' | 'timeSpent' | 'isTracking' | 'promotedToDashboard'>[]) => {
+    const addBulkTasks = useCallback(async (tasksData: Omit<Task, 'id' | 'completed' | 'created_at' | 'completed_at' | 'tags' | 'time_spent' | 'is_tracking' | 'promoted_to_dashboard' | 'user_id'>[]) => {
         if (!user) return;
         const newTasks: Task[] = [];
         for (const taskData of tasksData) {

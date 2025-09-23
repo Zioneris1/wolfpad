@@ -6,11 +6,17 @@ import { formatTime } from '../utils/time';
 const TimeTrackerHeader: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
     const { t } = useTranslation();
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [formattedCurrentTime, setFormattedCurrentTime] = useState('');
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
+
+    useEffect(() => {
+        // Format time on the client to avoid hydration mismatch
+        setFormattedCurrentTime(currentTime.toLocaleTimeString());
+    }, [currentTime]);
 
     const totalTimeTrackedToday = tasks.reduce((acc, task) => {
         if (task.completed && task.completed_at?.startsWith(new Date().toISOString().split('T')[0])) {
@@ -42,7 +48,7 @@ const TimeTrackerHeader: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
             </div>
             <div>
                 <p style={{ margin: '0 0 0.5rem 0', color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>{t('timeTracker.currentTime')}</p>
-                <p style={{ margin: 0, fontSize: '1.2rem' }}>{currentTime.toLocaleTimeString()}</p>
+                <p style={{ margin: 0, fontSize: '1.2rem' }}>{formattedCurrentTime || '...'}</p>
             </div>
             <div>
                 <p style={{ margin: '0 0 0.5rem 0', color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>{t('timeTracker.timeLeft')}</p>

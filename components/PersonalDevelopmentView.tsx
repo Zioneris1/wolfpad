@@ -29,7 +29,7 @@ const PersonalDevelopmentView: React.FC = () => {
                 .catch(err => console.error("Failed to fetch dev plans", err))
                 .finally(() => setIsDataLoading(false));
                 
-            const unsubscribe = subscribe('development_plans', message => {
+            const unsubscribe = subscribe('development_plans', (message: any) => {
                 switch (message.type) {
                     case 'DEVELOPMENT_PLAN_CREATED':
                         setPlans(prev => [message.payload, ...prev]);
@@ -98,7 +98,7 @@ const PersonalDevelopmentView: React.FC = () => {
 
         try {
             const newResource = await getAlternativeResource(plan.goal, resourceToReplace.title);
-            const updatedResources = plan[type].map(r => r.title === resourceToReplace.title ? newResource : r);
+            const updatedResources = plan[type].map(r => r.title === resourceToReplace.title ? { ...newResource, author_or_channel: (newResource as any).authorOrChannel } : r);
             await devPlanApi.updatePlan(planId, { [type]: updatedResources }, user.id);
         } catch (error) {
             alert(error instanceof Error ? error.message : "Failed to swap resource.");

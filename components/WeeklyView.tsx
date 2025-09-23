@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { Task } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -72,9 +72,28 @@ const WeeklyTaskCard: React.FC<WeeklyTaskCardProps> = ({ task, onDragStart, onTo
     );
 };
 
+
+const DayTitle: React.FC<{ day: Date }> = ({ day }) => {
+    const [title, setTitle] = useState('');
+    useEffect(() => {
+        setTitle(day.toLocaleDateString(undefined, { weekday: 'long' }));
+    }, [day]);
+    return <>{title}</>;
+};
+
+const DayDate: React.FC<{ date: Date | null }> = ({ date }) => {
+    const [formatted, setFormatted] = useState('');
+    useEffect(() => {
+        if (date) {
+            setFormatted(date.toLocaleDateString(undefined, { month: 'short', day: 'numeric'}));
+        }
+    }, [date]);
+    return <>{formatted}</>;
+};
+
 // --- Column for each day or for unscheduled tasks ---
 interface DayColumnProps {
-    title: string;
+    title: React.ReactNode;
     date: string | null;
     tasks: Task[];
     isToday?: boolean;
@@ -119,7 +138,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ title, date, tasks, isToday = fal
             <div className="p-3 mb-2 flex justify-between items-center">
                  <div>
                     <span className="font-bold text-base" style={{ color: 'var(--color-text-primary)'}}>{title}</span>
-                    {fullDate && <span className="ml-2 text-sm" style={{color: 'var(--color-text-secondary)'}}>{fullDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric'})}</span>}
+                    {fullDate && <span className="ml-2 text-sm" style={{color: 'var(--color-text-secondary)'}}><DayDate date={fullDate} /></span>}
                  </div>
                 <span className="text-sm font-semibold px-2.5 py-1 rounded-full" style={{ background: 'var(--color-border)', color: 'var(--color-text-primary)'}}>
                     {pendingTaskCount}
@@ -244,7 +263,7 @@ const WeeklyView: React.FC<WeeklyViewProps> = ({ tasks, onUpdateTask, onToggleCo
                         return (
                             <DayColumn
                                 key={dateKey}
-                                title={day.toLocaleDateString(undefined, { weekday: 'long' })}
+                                title={<DayTitle day={day} />}
                                 date={dateKey}
                                 tasks={dayTasks}
                                 isToday={isToday}

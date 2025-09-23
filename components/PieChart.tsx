@@ -11,7 +11,7 @@ const PieChart: React.FC<PieChartProps> = ({ transactions, currency }) => {
     const { t } = useTranslation();
     const expenseData = transactions
         .filter(t => t.amount < 0)
-        // Fix: Explicitly type the accumulator in the reduce function to resolve multiple downstream type errors.
+        // Fix: Explicitly type the accumulator of the reduce function to ensure type safety.
         .reduce((acc: Record<string, number>, t) => {
             const category = t.category || 'Uncategorized';
             acc[category] = (acc[category] || 0) + Math.abs(t.amount);

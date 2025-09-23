@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Task } from '../types';
 import { formatDate, formatTime } from '../utils/time';
 import { useTranslation } from '../hooks/useTranslation';
@@ -12,6 +12,21 @@ interface TaskDetailProps {
 
 const TaskDetail: React.FC<TaskDetailProps> = ({ task, onClose, onEdit, onDelete }) => {
     const { t } = useTranslation();
+    const [formattedDueDate, setFormattedDueDate] = useState('');
+    const [statusText, setStatusText] = useState('');
+
+    useEffect(() => {
+        if (task) {
+            setFormattedDueDate(task.due_date ? formatDate(task.due_date) : t('taskDetail.notSet'));
+
+            if (task.completed && task.completed_at) {
+                setStatusText(t('taskDetail.statusCompleted', { date: formatDate(task.completed_at) }));
+            } else {
+                setStatusText(t('taskDetail.statusPending'));
+            }
+        }
+    }, [task, t]);
+    
     if (!task) return null;
 
     const handleDelete = () => {
@@ -20,10 +35,6 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ task, onClose, onEdit, onDelete
             onClose();
         }
     };
-    
-    const statusText = task.completed && task.completed_at 
-        ? t('taskDetail.statusCompleted', { date: formatDate(task.completed_at) })
-        : t('taskDetail.statusPending');
 
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(16, 20, 26, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1050, backdropFilter: 'blur(5px)' }}>
@@ -46,7 +57,7 @@ const TaskDetail: React.FC<TaskDetailProps> = ({ task, onClose, onEdit, onDelete
                     </div>
                     <div>
                         <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--color-text-secondary)', textTransform: 'uppercase', fontSize: '0.8rem' }}>{t('taskDetail.dueDate')}</h4>
-                        <p style={{ margin: 0 }}>{task.due_date ? formatDate(task.due_date) : t('taskDetail.notSet')}</p>
+                        <p style={{ margin: 0 }}>{formattedDueDate}</p>
                     </div>
                      <div>
                         <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--color-text-secondary)', textTransform: 'uppercase', fontSize: '0.8rem' }}>{t('taskDetail.timeSpent')}</h4>

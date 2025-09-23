@@ -1,8 +1,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Task, GoalWithProgress, View, AppContextData, AssistantResponse } from '../types';
 
-// Fix: Per coding guidelines, the API key must be obtained from process.env.API_KEY.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+// Using Vite's standard method for accessing environment variables on the client.
+// Ensure VITE_API_KEY is set in your Vercel/Netlify/other hosting environment.
+// Fix: Use process.env.API_KEY as per the guidelines.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
 
 const getAiErrorMessage = (error: unknown, action: string): string => {
@@ -60,7 +62,7 @@ export const getTaskSuggestions = async (taskName: string): Promise<SuggestedTas
     try {
         const response = await ai.models.generateContent({
             model,
-            contents: { parts: [{ text: prompt }] },
+            contents: prompt,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -103,7 +105,7 @@ export const getMoreTagSuggestions = async (taskName: string, description: strin
     try {
         const response = await ai.models.generateContent({
             model,
-            contents: { parts: [{ text: prompt }] },
+            contents: prompt,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -137,7 +139,7 @@ export const getTaskBreakdownForGoal = async (goalName: string, goalDescription:
     try {
         const response = await ai.models.generateContent({
             model,
-            contents: { parts: [{ text: prompt }] },
+            contents: prompt,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -185,7 +187,7 @@ export const getDevelopmentPlan = async (goal: string, bookCount: number, channe
     try {
         const response = await ai.models.generateContent({
             model,
-            contents: { parts: [{ text: prompt }] },
+            contents: prompt,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -224,7 +226,7 @@ export const getAlternativeResource = async (goal: string, resourceToReplace: st
     try {
          const response = await ai.models.generateContent({
             model,
-            contents: { parts: [{ text: prompt }] },
+            contents: prompt,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -259,7 +261,7 @@ export const getTaskPrioritization = async (tasks: Task[]): Promise<string> => {
     try {
         const response = await ai.models.generateContent({
             model,
-            contents: { parts: [{ text: prompt }] },
+            contents: prompt,
         });
         return response.text;
     } catch (error) {
@@ -278,7 +280,7 @@ User prompt: "${prompt}"`;
     try {
         const response = await ai.models.generateContent({
             model,
-            contents: { parts: [{ text: finalPrompt }] },
+            contents: finalPrompt,
         });
         return response.text;
     } catch (error) {
@@ -303,7 +305,7 @@ export const getGoalStrategy = async (goal: GoalWithProgress): Promise<string> =
     try {
         const response = await ai.models.generateContent({
             model,
-            contents: { parts: [{ text: prompt }] },
+            contents: prompt,
         });
         return response.text;
     } catch (error) {

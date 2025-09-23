@@ -8,13 +8,6 @@ const handleSupabaseError = (error: any, context: string) => {
     }
 };
 
-const getUserId = async () => {
-    // Fix: supabase.auth.getUser() is async and should be awaited.
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("User not authenticated");
-    return user.id;
-};
-
 // --- Task API ---
 export const taskApi = {
     getTasks: async (userId: string): Promise<Task[]> => {

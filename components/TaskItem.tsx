@@ -29,7 +29,16 @@ const TaskItem: React.FC<TaskItemProps> = ({
     const isDraggable = !!onDragStart;
 
     const [isAnimating, setIsAnimating] = useState(false);
+    const [formattedDueDate, setFormattedDueDate] = useState('');
     const prevCompletedRef = useRef(task.completed);
+
+    useEffect(() => {
+        if (task.due_date) {
+            setFormattedDueDate(formatDate(task.due_date));
+        } else {
+            setFormattedDueDate('');
+        }
+    }, [task.due_date]);
 
     useEffect(() => {
         if (!prevCompletedRef.current && task.completed) {
@@ -112,7 +121,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 <div style={{ flex: 1 }} onClick={() => onView(task)}>
                     <div style={{ textDecoration: task.completed ? 'line-through' : 'none', cursor: 'pointer' }}>
                         <span style={{ color: 'var(--color-text-primary)' }}>{task.name}</span>
-                        {task.due_date && <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>{t('taskItem.due')}: {formatDate(task.due_date)}</span>}
+                        {formattedDueDate && <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>{t('taskItem.due')}: {formattedDueDate}</span>}
                     </div>
                     {!task.completed && estimatedTimeInSeconds > 0 && progressBar}
                 </div>
@@ -149,7 +158,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
                 {!task.completed && (
                     <div onClick={() => onView(task)}>
-                        {task.due_date && <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>{t('taskItem.due')}: {formatDate(task.due_date)}</div>}
+                        {formattedDueDate && <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '0.5rem' }}>{t('taskItem.due')}: {formattedDueDate}</div>}
                         {estimatedTimeInSeconds > 0 && progressBar}
                     </div>
                 )}

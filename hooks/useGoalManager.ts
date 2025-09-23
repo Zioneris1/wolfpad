@@ -22,7 +22,7 @@ export const useGoalManager = (tasks: Task[]) => {
             });
 
             // Fix: Pass table name 'goals' to subscribe function.
-            const unsubscribe = subscribe('goals', message => {
+            const unsubscribe = subscribe('goals', (message: any) => {
                 switch (message.type) {
                     case 'GOAL_CREATED':
                         setGoals(prev => [message.payload, ...prev]);
@@ -43,7 +43,7 @@ export const useGoalManager = (tasks: Task[]) => {
         }
     }, [user]);
 
-    const addGoal = useCallback(async (goalData: Omit<Goal, 'id' | 'createdAt'>) => {
+    const addGoal = useCallback(async (goalData: Omit<Goal, 'id' | 'created_at' | 'user_id'>) => {
         if (!user) return;
         const payload = {
             ...goalData,

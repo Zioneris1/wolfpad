@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { useJournalManager } from '../hooks/useJournalManager';
 import type { JournalEntry } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
@@ -18,7 +18,12 @@ const JournalEntryItem: React.FC<{
 }> = ({ entry, onUpdate, onDelete }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editText, setEditText] = useState(entry.content);
+    const [formattedTime, setFormattedTime] = useState('');
     const { t } = useTranslation();
+
+    useEffect(() => {
+        setFormattedTime(new Date(entry.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }));
+    }, [entry.created_at]);
 
     const handleSave = () => {
         onUpdate(entry.id, editText);
@@ -30,12 +35,10 @@ const JournalEntryItem: React.FC<{
         setIsEditing(false);
     };
 
-    const entryTime = new Date(entry.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-
     return (
         <div className="bg-[var(--color-bg-dark)] p-4 rounded-lg border border-[var(--color-border)]">
             <div className="flex justify-between items-center mb-2">
-                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{entryTime}</p>
+                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{formattedTime}</p>
                 {!isEditing && (
                     <div className="flex gap-2">
                         <button onClick={() => setIsEditing(true)} className="text-xs font-semibold" style={{ color: 'var(--color-secondary-blue)' }}>{t('common.edit')}</button>
@@ -67,10 +70,27 @@ interface TheDenViewProps {
     journalManager: ReturnType<typeof useJournalManager>;
 }
 
+const DateHeader: React.FC<{ dateString: string }> = ({ dateString }) => {
+    const [formattedDate, setFormattedDate] = useState('');
+    useEffect(() => {
+        setFormattedDate(formatDateForDisplay(dateString));
+    }, [dateString]);
+    return (
+        <h4 className="font-semibold pb-2 mb-4 border-b border-dashed" style={{ color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}>
+            {formattedDate}
+        </h4>
+    );
+};
+
 
 const TheDenView: React.FC<TheDenViewProps> = ({ journalManager }) => {
     const { t } = useTranslation();
     const [newEntryContent, setNewEntryContent] = useState('');
+    const [formattedToday, setFormattedToday] = useState('');
+
+    useEffect(() => {
+        setFormattedToday(formatDateForDisplay(new Date().toISOString()));
+    }, []);
 
     const handleSaveNewEntry = () => {
         journalManager.addEntry(newEntryContent);
@@ -78,7 +98,7 @@ const TheDenView: React.FC<TheDenViewProps> = ({ journalManager }) => {
     };
 
     const groupedEntries = useMemo(() => {
-        // Fix: Explicitly type the initial value for the reduce accumulator to resolve downstream type errors.
+        // Fix: Explicitly type the accumulator of the reduce function using a generic to ensure type safety.
         return journalManager.entries.reduce((acc: Record<string, JournalEntry[]>, entry) => {
             const dateKey = formatDateKey(entry.created_at);
             if (!acc[dateKey]) {
@@ -99,7 +119,7 @@ const TheDenView: React.FC<TheDenViewProps> = ({ journalManager }) => {
             <div className="mb-8 p-6 rounded-xl shadow-lg" style={{ background: 'var(--color-bg-panel)', border: '1px solid var(--color-border)' }}>
                 <h3 className="font-bold text-lg mb-1">{t('theDen.todaysEntry')}</h3>
                 <p className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-                    {formatDateForDisplay(new Date().toISOString())}
+                    {formattedToday}
                 </p>
                 <textarea
                     value={newEntryContent}
@@ -125,13 +145,11 @@ const TheDenView: React.FC<TheDenViewProps> = ({ journalManager }) => {
                 <h3 className="text-2xl font-bold mb-4">{t('theDen.archive')}</h3>
                 <div className="space-y-8">
                     {Object.keys(groupedEntries).length > 0 ? (
-                        // Fix: Use Object.entries for cleaner mapping over grouped data.
+                        // Fix: Use Object.entries for cleaner mapping over grouped data. This also helps with type safety.
                         Object.entries(groupedEntries).map(([date, entriesOnDate]) => {
                             return (
                                 <div key={date}>
-                                    <h4 className="font-semibold pb-2 mb-4 border-b border-dashed" style={{ color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}>
-                                        {formatDateForDisplay(date)}
-                                    </h4>
+                                    <DateHeader dateString={date} />
                                     <div className="space-y-4">
                                         {entriesOnDate.map(entry => (
                                             <JournalEntryItem 
