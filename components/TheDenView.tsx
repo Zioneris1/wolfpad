@@ -78,9 +78,8 @@ const TheDenView: React.FC<TheDenViewProps> = ({ journalManager }) => {
     };
 
     const groupedEntries = useMemo(() => {
-        // Fix: Explicitly type the accumulator of the reduce function and provide an initial value.
-        // This resolves subsequent TypeScript errors related to accessing properties on an 'unknown' type.
-        return journalManager.entries.reduce((acc: Record<string, JournalEntry[]>, entry) => {
+        // Fix: Use generic parameter for reduce to correctly type the accumulator.
+        return journalManager.entries.reduce<Record<string, JournalEntry[]>>((acc, entry) => {
             const dateKey = formatDateKey(entry.created_at);
             if (!acc[dateKey]) {
                 acc[dateKey] = [];
@@ -126,23 +125,26 @@ const TheDenView: React.FC<TheDenViewProps> = ({ journalManager }) => {
                 <h3 className="text-2xl font-bold mb-4">{t('theDen.archive')}</h3>
                 <div className="space-y-8">
                     {Object.keys(groupedEntries).length > 0 ? (
-                        Object.entries(groupedEntries).map(([date, entriesOnDate]) => (
-                            <div key={date}>
-                                <h4 className="font-semibold pb-2 mb-4 border-b border-dashed" style={{ color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}>
-                                    {formatDateForDisplay(date)}
-                                </h4>
-                                <div className="space-y-4">
-                                    {entriesOnDate.map(entry => (
-                                        <JournalEntryItem 
-                                            key={entry.id}
-                                            entry={entry}
-                                            onUpdate={journalManager.updateEntry}
-                                            onDelete={journalManager.deleteEntry}
-                                        />
-                                    ))}
+                        // Fix: Use Object.entries for cleaner mapping over grouped data.
+                        Object.entries(groupedEntries).map(([date, entriesOnDate]) => {
+                            return (
+                                <div key={date}>
+                                    <h4 className="font-semibold pb-2 mb-4 border-b border-dashed" style={{ color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}>
+                                        {formatDateForDisplay(date)}
+                                    </h4>
+                                    <div className="space-y-4">
+                                        {entriesOnDate.map(entry => (
+                                            <JournalEntryItem 
+                                                key={entry.id}
+                                                entry={entry}
+                                                onUpdate={journalManager.updateEntry}
+                                                onDelete={journalManager.deleteEntry}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     ) : (
                          <div className="text-center py-12 px-6 border-2 border-dashed rounded-lg" style={{ borderColor: 'var(--color-border)', background: 'var(--color-bg-dark)'}}>
                             <p className="mt-1 text-sm" style={{ color: 'var(--color-text-secondary)'}}>{t('theDen.noEntries')}</p>

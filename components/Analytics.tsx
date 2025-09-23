@@ -54,7 +54,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ tasks, moneyManager, onNavigateTo
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(t => t.completed).length;
     const pendingTasks = totalTasks - completedTasks;
-    const totalTimeSpent = tasks.reduce((acc, task) => acc + task.timeSpent, 0);
+    const totalTimeSpent = tasks.reduce((acc, task) => acc + task.time_spent, 0);
     const effortImpactRatio = tasks.reduce((acc, task) => {
         if (task.completed) {
             acc.totalImpact += task.impact;
