@@ -1,8 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Task, GoalWithProgress, View, AppContextData, AssistantResponse } from '../types';
 
-// Fix: Per @google/genai guidelines, API key must be from process.env.API_KEY
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+// Fix: Per coding guidelines, the API key must be obtained from process.env.API_KEY.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
 
 const getAiErrorMessage = (error: unknown, action: string): string => {

@@ -78,8 +78,8 @@ const TheDenView: React.FC<TheDenViewProps> = ({ journalManager }) => {
     };
 
     const groupedEntries = useMemo(() => {
-        // Fix: Use generic parameter for reduce to correctly type the accumulator.
-        return journalManager.entries.reduce<Record<string, JournalEntry[]>>((acc, entry) => {
+        // Fix: Explicitly type the initial value for the reduce accumulator to resolve downstream type errors.
+        return journalManager.entries.reduce((acc: Record<string, JournalEntry[]>, entry) => {
             const dateKey = formatDateKey(entry.created_at);
             if (!acc[dateKey]) {
                 acc[dateKey] = [];
