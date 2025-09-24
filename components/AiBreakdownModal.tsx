@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import type { GoalWithProgress, Task } from '../types';
-import { getTaskBreakdownForGoal, SuggestedTask } from '../lib/ai';
+// Fix: Import SuggestedTask from types.ts
+import type { GoalWithProgress, Task, SuggestedTask } from '../types';
+import { getTaskBreakdownForGoal } from '../lib/ai';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface AiBreakdownModalProps {

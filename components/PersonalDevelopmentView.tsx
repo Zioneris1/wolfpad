@@ -9,7 +9,7 @@ import { subscribe } from '../services/realtime';
 
 const BookIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 16c1.255 0 2.443-.29 3.5-.804V4.804zM14.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 0114.5 16c1.255 0 2.443-.29 3.5-.804v-10A7.968 7.968 0 0014.5 4z" /></svg>;
 const YoutubeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>;
-const PodcastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 9a2 2 0 114 0 2 2 0 01-4 0z" /><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM2 10a8 8 0 1116 0 8 8 0 01-16 0z" clipRule="evenodd" /></svg>;
+const PodcastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 9a2 2 S114 0 2 2 0 01-4 0z" /><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM2 10a8 8 0 1116 0 8 8 0 01-16 0z" clipRule="evenodd" /></svg>;
 const SwapIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" /></svg>;
 const DeleteIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
 
@@ -55,18 +55,20 @@ const PersonalDevelopmentView: React.FC = () => {
         setIsLoading(true);
         try {
             const newPlanData = await getDevelopmentPlan(goal, 3, 3, 3);
-            // Fix: Map the AI response (camelCase) to the database schema (snake_case)
-            // to resolve type errors for `youtube_channels` and `author_or_channel`.
+            // Fix: The AI service returns camelCase properties (e.g., youtubeChannels, authorOrChannel)
+            // while the app's types expect snake_case. We cast to 'any' to handle this mismatch
+            // and correctly map the data to the expected snake_case format for the database.
+            const rawData = newPlanData as any;
             const mapResource = (res: { title: string; authorOrChannel: string; }): DevelopmentResource => ({
                 title: res.title,
                 author_or_channel: res.authorOrChannel,
             });
 
-            const planPayload = { 
-                goal, 
-                books: newPlanData.books.map(mapResource),
-                youtube_channels: newPlanData.youtubeChannels.map(mapResource),
-                podcasts: newPlanData.podcasts.map(mapResource)
+            const planPayload = {
+                goal,
+                books: (rawData.books || []).map(mapResource),
+                youtube_channels: (rawData.youtubeChannels || []).map(mapResource),
+                podcasts: (rawData.podcasts || []).map(mapResource)
             };
             await devPlanApi.createPlan(planPayload, user.id);
             setGoal('');
@@ -97,8 +99,14 @@ const PersonalDevelopmentView: React.FC = () => {
         if (!plan) return;
 
         try {
-            const newResource = await getAlternativeResource(plan.goal, resourceToReplace.title);
-            const updatedResources = plan[type].map(r => r.title === resourceToReplace.title ? { ...newResource, author_or_channel: (newResource as any).authorOrChannel } : r);
+            // Fix: The AI returns a camelCase object, so we cast to 'any' and manually
+            // construct a `DevelopmentResource` object with the correct snake_case properties.
+            const newResourceRaw = await getAlternativeResource(plan.goal, resourceToReplace.title) as any;
+            const newResource: DevelopmentResource = { 
+                title: newResourceRaw.title, 
+                author_or_channel: newResourceRaw.authorOrChannel 
+            };
+            const updatedResources = plan[type].map(r => r.title === resourceToReplace.title ? newResource : r);
             await devPlanApi.updatePlan(planId, { [type]: updatedResources }, user.id);
         } catch (error) {
             alert(error instanceof Error ? error.message : "Failed to swap resource.");

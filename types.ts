@@ -132,6 +132,22 @@ export interface ThemeOption {
   styles: Record<string, string>;
 }
 
+// Fix: Add and export SuggestedTaskValues for AI suggestions.
+export interface SuggestedTaskValues {
+    description: string;
+    effort: number;
+    impact: number;
+    tags: string[];
+}
+
+// Fix: Add and export SuggestedTask for AI goal breakdowns.
+export interface SuggestedTask {
+    name: string;
+    description: string;
+    effort: number;
+    impact: number;
+}
+
 
 // Supabase generated types (simplified for this context)
 export interface Database {

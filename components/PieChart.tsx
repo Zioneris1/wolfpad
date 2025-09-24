@@ -11,12 +11,14 @@ const PieChart: React.FC<PieChartProps> = ({ transactions, currency }) => {
     const { t } = useTranslation();
     const expenseData = transactions
         .filter(t => t.amount < 0)
-        // Fix: Explicitly type the accumulator of the reduce function to ensure type safety.
+        // Fix: Correctly type the `reduce` operation's accumulator and initial value to
+        // ensure `expenseData` is properly typed as `Record<string, number>`.
+        // This resolves downstream errors where values were being inferred as `unknown`.
         .reduce((acc: Record<string, number>, t) => {
             const category = t.category || 'Uncategorized';
             acc[category] = (acc[category] || 0) + Math.abs(t.amount);
             return acc;
-        }, {});
+        }, {} as Record<string, number>);
 
     const totalExpenses = Object.values(expenseData).reduce((sum, amount) => sum + amount, 0);
     
@@ -41,7 +43,7 @@ const PieChart: React.FC<PieChartProps> = ({ transactions, currency }) => {
         <div>
             <h3 style={{marginTop: 0}}>{t('moneyView.breakdown')} ({currency})</h3>
             {Object.entries(expenseData)
-                .sort((a, b) => b[1] - a[1])
+                .sort(([, a], [, b]) => b - a)
                 .map(([category, amount]) => (
                 <div key={category} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem'}}>
                     <div>

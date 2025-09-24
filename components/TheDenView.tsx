@@ -98,7 +98,8 @@ const TheDenView: React.FC<TheDenViewProps> = ({ journalManager }) => {
     };
 
     const groupedEntries = useMemo(() => {
-        // Fix: Explicitly type the accumulator of the reduce function using a generic to ensure type safety.
+        // Fix: Correctly type the `reduce` operation to avoid `groupedEntries` being inferred
+        // as `unknown`, which caused a downstream error when calling `.map`.
         return journalManager.entries.reduce((acc: Record<string, JournalEntry[]>, entry) => {
             const dateKey = formatDateKey(entry.created_at);
             if (!acc[dateKey]) {
@@ -106,7 +107,7 @@ const TheDenView: React.FC<TheDenViewProps> = ({ journalManager }) => {
             }
             acc[dateKey].push(entry);
             return acc;
-        }, {});
+        }, {} as Record<string, JournalEntry[]>);
     }, [journalManager.entries]);
     
     return (
@@ -145,7 +146,6 @@ const TheDenView: React.FC<TheDenViewProps> = ({ journalManager }) => {
                 <h3 className="text-2xl font-bold mb-4">{t('theDen.archive')}</h3>
                 <div className="space-y-8">
                     {Object.keys(groupedEntries).length > 0 ? (
-                        // Fix: Use Object.entries for cleaner mapping over grouped data. This also helps with type safety.
                         Object.entries(groupedEntries).map(([date, entriesOnDate]) => {
                             return (
                                 <div key={date}>
